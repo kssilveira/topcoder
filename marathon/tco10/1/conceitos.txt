@@ -1,0 +1,14 @@
+graph straight-line grid drawing
+minimize crossings
+planar straight-line drawing
+graph planarization - retira straight-lines
+
+bibliografia:
+http://www.graphdrawing.org/literature/gd-constraints.pdf
+http://www.csse.monash.edu.au/~gfarr/research/GraphDrawing02-Mel.ppt
+
+idéias:
+testar se já tem aquele ponto
+gerar apenas entre (minx, miny) e (maxx, maxy)
+calcular score incrementalmente
+

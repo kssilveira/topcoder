@@ -1,0 +1,193 @@
+#include <algorithm>
+#include <bitset>
+#include <cassert>
+#include <cctype>
+#include <cfloat>
+#include <climits>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
+#include <deque>
+#include <functional>
+#include <iostream>
+#include <limits>
+#include <list>
+#include <map>
+#include <queue>
+#include <set>
+#include <sstream>
+#include <stack>
+#include <streambuf>
+#include <string>
+#include <utility>
+#include <vector>
+ 
+#define r(i, n) rb(i, 0, n)
+#define rb(i, b, n) rbc(i, b, n, <)
+#define re(i, n) rbe(i, 0, n)
+#define rbe(i, b, n) rbc(i, b, n, <=)
+#define rbc(i, b, n, c) for(int i = (b); i c ((int)(n)); i++)
+ 
+#define ri r(i, n)
+#define rj r(j, n)
+#define rk r(k, n)
+#define rim r(i, m)
+#define rjm r(j, m)
+#define rkm r(k, m)
+ 
+#define s(v) ((int) v.size())
+ 
+using namespace std;
+
+const int MAX = 500000;
+
+bitset<MAX> isnotprime;
+bitset<MAX> gone, solvegone;
+bitset<MAX> memowincomposite;
+int memosolvecomposite[MAX];
+vector<int> primes;
+ 
+class PrimeCompositeGame {
+	public:
+  PrimeCompositeGame() {
+    primes.push_back(2);
+    isnotprime[0] = isnotprime[1] = 1;
+    for (int i = 3; i < MAX; i += 2) {
+      if (!isnotprime[i]) {
+        primes.push_back(i);
+        for (int j = i + i; j < MAX; j += i) {
+          isnotprime[j] = 1;
+        }
+      }
+    }
+  }
+
+  int solvecomposite(int N, int K) {
+    int& res = memosolvecomposite[N];
+    if (solvegone[N]) return res;
+    solvegone[N] = true;
+    if (wincomposite(N, K)) {
+      res = INT_MAX;
+      for (int i = K; i >= 1; i--) {
+        int next = N - i;
+        if (next > 2 && ((next % 2 == 0) || isnotprime[next])) {
+          if (!winprime(next, K)) {
+            res = min(res, solveprime(next, K));
+          }
+        }
+      }
+      if (res == INT_MAX || res == INT_MIN) return res = 0;
+      return ++res;
+    } else {
+      res = INT_MIN;
+      for (int i = K; i >= 1; i--) {
+        int next = N - i;
+        if (next > 2 && ((next % 2 == 0) || isnotprime[next])) {
+          //if (!winprime(next, K)) {
+            res = max(res, solveprime(next, K));;
+          //}
+        }
+      }
+      if (res == INT_MAX || res == INT_MIN) return res = 0;
+      return ++res;
+    }
+  }
+
+  bool wincomposite(int N, int K) {
+    if (gone[N]) return memowincomposite[N];
+    gone[N] = true;
+    bool res = true;
+    for (int i = K; i >= 1; i--) {
+      int next = N - i;
+      if (next > 2 && ((next % 2 == 0) || isnotprime[next])) {
+        res = res && winprime(next, K);
+        if (!res) break;
+      }
+    }
+    return memowincomposite[N] = !res;
+  }
+
+  bool winprime(int N, int K) {
+    bool res = true;
+    for (int i = K; i >= 1; i--) {
+      int next = N - i;
+      if (next > 1 && !isnotprime[next] && (next % 2 || next == 2)) {
+        res = res && wincomposite(next, K);
+        if (!res) break;
+      }
+    }
+    return !res;
+  }
+
+  int solveprime(int N, int K) {
+    if (winprime(N, K)) {
+      int res = INT_MAX;
+      for (int i = K; i >= 1; i--) {
+        int next = N - i;
+        if (next > 1 && !isnotprime[next] && (next % 2 || next == 2)) {
+          if (!wincomposite(next, K)) {
+            res = min(res, solvecomposite(next, K));
+            break;
+          }
+        }
+      }
+      if (res == INT_MAX || res == INT_MIN) return res = 0;
+      return ++res;
+    } else {
+      int res = INT_MIN;
+      for (int i = K; i >= 1; i--) {
+        int next = N - i;
+        if (next > 1 && !isnotprime[next] && (next % 2 || next == 2)) {
+          //if (wincomposite(next, K)) {
+            res = max(res, solvecomposite(next, K));
+          //}
+        }
+      }
+      if (res == INT_MAX || res == INT_MIN) return res = 0;
+      return ++res;
+    }
+  }
+
+	int theOutcome(int N, int K) {
+    gone.reset();
+    solvegone.reset();
+    //cout << s(primes) << endl;
+    //r(i, 10) {
+      //cout << primes[i] << ", ";
+    //}
+
+    //r(i, 30) {
+      //cout << i << ' ' << winprime(i, K) << endl;
+    //}
+
+		winprime(N, K);
+    int res = solveprime(N, K);
+    if (!winprime(N, K)) res = -res;
+		return res;
+	}
+	
+// BEGIN CUT HERE
+	public:
+	void run_test(int Case) { if ((Case == -1) || (Case == 0)) test_case_0(); if ((Case == -1) || (Case == 1)) test_case_1(); if ((Case == -1) || (Case == 2)) test_case_2(); if ((Case == -1) || (Case == 3)) test_case_3(); if ((Case == -1) || (Case == 4)) test_case_4(); }
+	private:
+	template <typename T> string print_array(const vector<T> &V) { ostringstream os; os << "{ "; for (typename vector<T>::const_iterator iter = V.begin(); iter != V.end(); ++iter) os << '\"' << *iter << "\","; os << " }"; return os.str(); }
+	void verify_case(int Case, const int &Expected, const int &Received) { cerr << "Test Case #" << Case << "..."; if (Expected == Received) cerr << "PASSED" << endl; else { cerr << "FAILED" << endl; cerr << "\tExpected: \"" << Expected << '\"' << endl; cerr << "\tReceived: \"" << Received << '\"' << endl; } }
+	void test_case_0() { int Arg0 = 3; int Arg1 = 2; int Arg2 = 1; verify_case(0, Arg2, theOutcome(Arg0, Arg1)); }
+	void test_case_1() { int Arg0 = 58; int Arg1 = 1; int Arg2 = 0; verify_case(1, Arg2, theOutcome(Arg0, Arg1)); }
+	void test_case_2() { int Arg0 = 30; int Arg1 = 3; int Arg2 = -2; verify_case(2, Arg2, theOutcome(Arg0, Arg1)); }
+	void test_case_3() { int Arg0 = 6; int Arg1 = 3; int Arg2 = 1; verify_case(3, Arg2, theOutcome(Arg0, Arg1)); }
+	void test_case_4() { int Arg0 = 526; int Arg1 = 58; int Arg2 = 19; verify_case(4, Arg2, theOutcome(Arg0, Arg1)); }
+
+// END CUT HERE
+
+};
+ 
+// BEGIN CUT HERE 
+int main()
+{
+	PrimeCompositeGame ___test; 
+	___test.run_test(-1); 
+} 
+// END CUT HERE

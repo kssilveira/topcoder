@@ -1,0 +1,144 @@
+#include <algorithm>
+#include <bitset>
+#include <cassert>
+#include <cctype>
+#include <cfloat>
+#include <climits>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
+#include <deque>
+#include <functional>
+#include <iostream>
+#include <limits>
+#include <list>
+#include <map>
+#include <queue>
+#include <set>
+#include <sstream>
+#include <stack>
+#include <streambuf>
+#include <string>
+#include <utility>
+#include <vector>
+ 
+#define rep(i, n) repb(i, 0, n)
+#define repb(i, b, n) repbc(i, b, n, <)
+#define repe(i, n) repbe(i, 0, n)
+#define repbe(i, b, n) repbc(i, b, n, <=)
+#define repbc(i, b, n, c) for(int i = b; i c n; i++)
+ 
+using namespace std;
+
+vector<int> a;
+int n, coins;
+long double cb[1010][1010][55];
+long double memo[1010][55];
+bool gone[1010][55];
+
+/*
+long double comb(int n, int k) {
+  if (n < 0 || k > n || k < 0) return 0;
+  if (n == 0 || k == 0) return 1;
+  return cb[n][k];
+}//*/
+
+void comb(int n, int k, long double* num, int& numsize,
+    long double* den, int& densize) {
+  for (int i = k + 1; i <= n; i++) num[numsize++] = i;
+  for (int i = 2; i <= (n - k); i++) den[densize++] = i;
+}
+
+
+long double comb3(int n1, int k1, int n2, int k2,
+    long double* num, int numsize, long double* den, int densize) {
+  comb(n1, k1, num, numsize, den, densize);
+  comb(n2, k2, num, numsize, den, densize);
+
+  sort(num, num + numsize);
+  sort(den, den + densize);
+
+  long double res = 1;
+  int i;
+  for (i = 0; i < numsize && i < densize; i++) {
+    res *= num[i] / den[i];
+  }
+  for (; i < numsize; i++) res *= num[i];
+  for (; i < densize; i++) res /= den[i];
+
+  return res;
+}
+
+long double num[5050], den[5050];
+
+long double solve(int heads, int index) {
+  if (gone[heads][index]) return memo[heads][index];
+  gone[heads][index] = true;
+  // cout << "solve(" << heads << ", " << index << endl;
+  long double& res = memo[heads][index];
+  res = 0.0;
+  if (index == n) {
+    return res = heads;
+  }
+  // long double den = comb(coins, a[index]);
+  for (int i = 0; i <= heads; i++) {
+    if (i > a[index]) break;
+    if (coins - heads < a[index] - i) continue;
+    int densize = 0, numsize = 0;
+    comb(coins, a[index], den, densize, num, numsize);
+    // res += (comb(heads, i) / den) * comb(coins - heads, a[index] - i) * 
+      // solve((heads - i) + (a[index] - i), index + 1);
+    res += comb3(heads, i, coins - heads, a[index] - i,
+        num, numsize, den, densize) *
+      solve((heads - i) + (a[index] - i), index + 1);
+  }
+  // return res = res / comb(coins, a[index]);
+  return res;
+}
+ 
+class CoinReversing {
+	public:
+	double expectedHeads(int N, vector <int> A) {
+    /*
+    for (int k = 0; k < (int) A.size(); k++) {
+      cb[i][j][k] = comb3
+      for (int i = 0; i < 1010; i++) {
+        for (int j = 0; j < 1010; j++) {
+        }
+      }
+    }//*/
+
+    memset(gone, 0, sizeof(gone));
+
+		double res = 0.0;
+    a = A;
+    n = (int) a.size();
+    coins = N;
+    res = solve(N, 0);
+		return res;
+	}
+	
+// BEGIN CUT HERE
+	public:
+	void run_test(int Case) { if ((Case == -1) || (Case == 0)) test_case_0(); if ((Case == -1) || (Case == 1)) test_case_1(); if ((Case == -1) || (Case == 2)) test_case_2(); if ((Case == -1) || (Case == 3)) test_case_3(); }
+	private:
+	template <typename T> string print_array(const vector<T> &V) { ostringstream os; os << "{ "; for (typename vector<T>::const_iterator iter = V.begin(); iter != V.end(); ++iter) os << '\"' << *iter << "\","; os << " }"; return os.str(); }
+	void verify_case(int Case, const double &Expected, const double &Received) { cerr << "Test Case #" << Case << "..."; if (Expected == Received) cerr << "PASSED" << endl; else { cerr << "FAILED" << endl; cerr << "\tExpected: \"" << Expected << '\"' << endl; cerr << "\tReceived: \"" << Received << '\"' << endl; } }
+	void test_case_0() { int Arg0 = 3; int Arr1[] = {2,2}; vector <int> Arg1(Arr1, Arr1 + (sizeof(Arr1) / sizeof(Arr1[0]))); double Arg2 = 1.6666666666666667; verify_case(0, Arg2, expectedHeads(Arg0, Arg1)); }
+	void test_case_1() { int Arg0 = 10; int Arr1[] = {10,10,10}; vector <int> Arg1(Arr1, Arr1 + (sizeof(Arr1) / sizeof(Arr1[0]))); double Arg2 = 0.0; verify_case(1, Arg2, expectedHeads(Arg0, Arg1)); }
+	void test_case_2() { int Arg0 = 10; int Arr1[] = {2,7,1,8,2,8}; vector <int> Arg1(Arr1, Arr1 + (sizeof(Arr1) / sizeof(Arr1[0]))); double Arg2 = 4.792639999999999; verify_case(2, Arg2, expectedHeads(Arg0, Arg1)); }
+	void test_case_3() { int Arg0 = 1000; int Arr1[] = {916,153,357,729,183,848,61,672,295,936}; vector <int> Arg1(Arr1, Arr1 + (sizeof(Arr1) / sizeof(Arr1[0]))); double Arg2 = 498.1980774932278; verify_case(3, Arg2, expectedHeads(Arg0, Arg1)); }
+
+// END CUT HERE
+
+};
+ 
+// BEGIN CUT HERE 
+int main()
+{
+	CoinReversing ___test; 
+	___test.run_test(-1); 
+} 
+// END CUT HERE
