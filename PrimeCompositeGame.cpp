@@ -44,18 +44,107 @@ using namespace std;
 const int MAX = 500000;
 
 bitset<MAX> iscomp;
+
+typedef priority_queue<pair<int, int> > PQ;
+
+int getmin(PQ& q, int bound) {
+  while (!q.empty()) {
+    pair<int, int> cur = q.top();
+    if (cur.second < bound) {
+      q.pop();
+    } else {
+      return -cur.first;
+    }
+  }
+  return 0;
+}
+
+int getmax(PQ& q, int bound) {
+  while (!q.empty()) {
+    pair<int, int> cur = q.top();
+    if (cur.second < bound) {
+      q.pop();
+    } else {
+      return cur.first;
+    }
+  }
+  return 0;
+}
+
+int dp[2];
+
+#define mp make_pair
+#define ppn(x) cout << #x << ": " << x << endl
  
 class PrimeCompositeGame {
 	public:
 	int theOutcome(int N, int K) {
+    //ppn(N);
     rb(i, 2, N + 1) {
       if (!iscomp[i]) {
-        rb(j, i + i, N + 1) {
+        //cout  << i << endl;
+        for (int j = i + i; j <= N; j += i) {
           iscomp[j] = true;
         }
       }
     }
-    
+    priority_queue<pair<int, int> > primePositive[2],
+      primeNegative[2], compPositive[2], compNegative[2];
+
+    rb(n, 1, N + 1) {
+      r(player, 2) {
+        dp[player] = 0;
+        int pick = 0;
+        if (player == 0) {
+          pick = getmin(primePositive[1], n - K);
+          if (pick == 0) {
+            pick = getmin(primeNegative[1], n - K);
+          }
+        }
+        if (player == 1) {
+          pick = getmax(compNegative[0], n - K);
+          if (pick == 0) {
+            pick = getmax(compPositive[0], n - K);
+          }
+        }
+        //ppn(pick);
+        if (pick == 0) {
+          if (player == 0) {
+            dp[player] = -1;
+          } else {
+            dp[player] = 1;
+          }
+        } else {
+          if (pick < 0) {
+            dp[player] = pick - 1;
+          } else {
+            dp[player] = pick + 1;
+          }
+        }
+      }
+
+      r(player, 2) {
+        if (n == 1) break;
+        if (iscomp[n]) {
+          if (dp[player] > 0) {
+            compPositive[player].push(make_pair(dp[player], n));
+          } else {
+            compNegative[player].push(make_pair(dp[player], n));
+          }
+        } else {
+          if (dp[player] > 0) {
+            primePositive[player].push(mp(-dp[player], n));
+          } else {
+            primeNegative[player].push(mp(-dp[player], n));
+          }
+        }
+      }
+
+    }
+
+    int y = dp[0];
+    if (y > 0) return y - 1;
+    return y + 1;
 	}
 	
 // BEGIN CUT HERE
